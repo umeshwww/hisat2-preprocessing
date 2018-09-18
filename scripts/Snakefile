@@ -1,0 +1,49 @@
+import yaml
+
+include: "/scripts/snakemake-scripts.py"
+
+configfile: "/config/config.yml"
+config = parse_config(config)
+
+fastqdir = "/fastq"
+
+indexdir = str(Path(config['metadir'])/"hisat2")
+fastafile = str(Path(config['metadir'])/config['fasta'])
+indexname = str(Path(config['fasta']).stem)
+
+indexfiles = expand(
+    str(Path(indexdir)/indexname)+".{i}.ht2",
+    i=range(1,9))
+
+
+rule all:
+    input:
+        "config.yml",
+        indexfiles
+
+
+# writes the updated config file to the output directory
+rule storeconfig:
+    output:
+        "config.yml"
+    run:
+        with open(output[0],"w") as f:
+            yaml.dump(config, f, default_flow_style=False)
+
+
+rule clean:
+    shell:
+        "rm -rf /output/*"
+
+
+# create a hisat2 index
+rule hisat2index:
+    input:
+        fastafile
+    output:
+        indexfiles
+    log:
+        "logs/hisat2-index.log"
+    shell:
+        "cd " + indexdir + " && "
+        "hisat2-build {input} " + indexname

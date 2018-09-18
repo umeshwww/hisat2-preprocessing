@@ -1,0 +1,10 @@
+# the location of the hisat2 index (it will be generated if it does
+# not exist)
+metadir: "/meta"
+
+# the location of the fasta and gtf files relative to the `metadir`.
+# If not specified the first available fasta/gtf files in the
+# `metadir` will be used
+
+# fasta: ""
+# gtf: ""
