@@ -1,0 +1,13 @@
+name: hisat2
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - snakemake=5.2.4
+  - trimmomatic=0.36
+  - hisat2=2.1.0
+  - picard=2.18.4
+  - bedtools=2.27.1
+  - samtools=1.8
+  - ncurses=5.9
+  - multiqc=1.6
