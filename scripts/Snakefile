@@ -3,9 +3,10 @@ import yaml
 include: "/scripts/snakemake-scripts.py"
 
 configfile: "/config/config.yml"
-config = parse_config(config)
 
 fastqdir = "/fastq"
+samples = get_samples(fastqdir)
+config = parse_config(config, samples)
 
 # "/meta/hisat2"
 indexdir = str(Path(config['metadir'])/"hisat2")
@@ -15,8 +16,6 @@ fastafile = str(Path(config['metadir'])/config['fasta'])
 indexname = str(Path(config['fasta']).stem)
 # "/meta/hisat2/genome"
 indexstem = str(Path(indexdir)/indexname)
-
-samples = get_samples(fastqdir)
 
 indexfiles = expand(
     indexstem+".{i}.ht2",
@@ -59,9 +58,9 @@ rule hisat2index:
 
 rule hisat2:
     input:
-        reads=[
-            "merged/{sample}_R1.fastq",
-            "merged/{sample}_R2.fastq"],
+        # the function below selects either single or paired inputs
+        # depending on the option 'mode'
+        reads=lambda wildcards: hisat2_input(wildcards, config['mode'])
     output:
         "mapped/{sample}.bam"
     log:

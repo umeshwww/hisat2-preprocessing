@@ -72,10 +72,47 @@ directory.
     return filepath
 
 
-def parse_config(config):
+def get_mode(config, samples):
+    if "mode" in config:
+        mode = config['mode']
+    else:
+        mode = "auto"
+
+    if mode not in ["single", "paired", "auto"]:
+        raise Exception(
+            """`mode` must be either "single", "paired" or "auto" """)
+    if mode == "auto":
+        # check if read 2 exists for all files.  If at least one
+        # R1 has no associated R2 switch to single end mode
+        for sample in samples:
+            for R2 in samples[sample]["2"]:
+                if not Path(R2).is_file():
+                    return "single"
+        return "paired"
+    else:
+        return mode
+
+
+def parse_config(config, samples):
     """Re-formats the config to include the automatically determined
 files."""
+
     config['metadir'] = str(get_metadir(config))
     config['fasta'] = str(get_reference_file(config, key="fasta").name)
     config['gtf'] = str(get_reference_file(config, key="gtf").name)
+    config['mode'] = get_mode(config, samples)
     return config
+
+
+def hisat2_input(wildcards, mode):
+    """Selects between either a single or paired input based on the
+mode"""
+
+    sample = wildcards.sample
+    R1, R2 = [f"""merged/{sample}_R1.fastq""",
+              f"""merged/{sample}_R2.fastq"""]
+
+    if mode == "single":
+        return [R1]
+    elif mode == "paired":
+        return [R1, R2]

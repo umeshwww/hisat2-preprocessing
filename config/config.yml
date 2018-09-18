@@ -8,3 +8,5 @@ metadir: "/meta"
 
 # fasta: ""
 # gtf: ""
+
+# mode: "auto"
