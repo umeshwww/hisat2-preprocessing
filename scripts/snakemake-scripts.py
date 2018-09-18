@@ -12,6 +12,9 @@ def get_samples(fastqdir):
 
     """
 
+    if not Path(fastqdir).is_dir():
+        raise Exception(f"""{fastqdir} does not exist""")
+
     files = Path(fastqdir).glob('**/*_R1_*.fastq.gz')
     samples = dict()
 
@@ -27,9 +30,10 @@ def get_samples(fastqdir):
             samples[sample]['1'].append(R1)
             samples[sample]['2'].append(R2)
 
-            return samples
+    if not samples:
+        raise Exception("Could not find any samples")
 
-        samples = get_samples("/fastq")
+    return samples
 
 
 def get_metadir(config):
