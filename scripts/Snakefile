@@ -16,6 +16,8 @@ fastafile = str(Path(config['metadir'])/config['fasta'])
 indexname = str(Path(config['fasta']).stem)
 # "/meta/hisat2/genome"
 indexstem = str(Path(indexdir)/indexname)
+# "/meta/annotation.gtf"
+gtffile = str(Path(config['metadir'])/config['gtf'])
 
 indexfiles = expand(
     indexstem+".{i}.ht2",
@@ -26,7 +28,7 @@ rule all:
     input:
         "config.yml",
         indexfiles,
-        expand("mapped/{sample}.bam", sample=samples.keys())
+        expand("counts/{sample}.tsv", sample=samples.keys())
 
 
 # writes the updated config file to the output directory
@@ -40,10 +42,32 @@ rule storeconfig:
 
 rule clean:
     shell:
-        "rm -rf /output/*"
+        "rm -rf /output/* /index/*.gff /index/hisat2/*"
 
 
-# create a hisat2 index
+rule samtools_sort:
+    input:
+        "mapped/unsorted/{sample}.bam"
+    output:
+        "mapped/sorted/{sample}.bam"
+    params:
+        "-m 4G"
+    threads: 8
+    wrapper:
+        "0.2.0/bio/samtools/sort"
+
+
+rule htseq:
+    input:
+        bam="mapped/sorted/{sample}.bam",
+        gtf=gtffile
+    output:
+        "counts/{sample}.tsv"
+    shell:
+        """htseq-count --order=pos --format=bam \
+        {input.bam} {input.gtf} > {output}"""
+
+
 rule hisat2index:
     input:
         fastafile
@@ -62,7 +86,7 @@ rule hisat2:
         # depending on the option 'mode'
         reads=lambda wildcards: hisat2_input(wildcards, config['mode'])
     output:
-        "mapped/{sample}.bam"
+        "mapped/unsorted/{sample}.bam"
     log:
         "logs/hisat2/{sample}.log"
     params:

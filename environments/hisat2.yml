@@ -11,3 +11,7 @@ dependencies:
   - samtools=1.8
   - ncurses=5.9
   - multiqc=1.6
+  # there is a version 0.11.0 but, as of yet, it is unavailable
+  # through bioconda
+  - htseq=0.9.1
+  - gffread=0.9.9
