@@ -28,13 +28,13 @@ indexfiles = expand(
 rule all:
     input:
         "config.yml",
-        indexfiles,
         # count vectors
         expand("counts/{sample}.tsv", sample=samples.keys()),
         # qc from htseq_qc
         expand("qc/htseq_qc/{sample}.pdf", sample=samples.keys()),
         # multiqc outputs
-        "qc/multiqc/summary.html"
+        "qc/multiqc/summary.html",
+        "qc/multiqc/fastqc.html"
 
 
 # writes the updated config file to the output directory
@@ -48,7 +48,7 @@ rule storeconfig:
 
 rule clean:
     shell:
-        "rm -rf /output/* /index/*.gff /index/hisat2/*"
+        "rm -rf /output/* /index/*.gff /index/*.bed /index/hisat2/*"
 
 
 rule samtools_sort:
@@ -80,9 +80,24 @@ rule multiqc_summary:
     input:
         expand("counts/{sample}.tsv", sample=samples.keys()),
         expand("logs/hisat2/{sample}.log", sample=samples.keys()),
-        expand("qc/rseqc/{sample}.rseqc.txt", sample=samples.keys())
+        expand("qc/rseqc/{sample}.rseqc.txt", sample=samples.keys()),
     output:
         "qc/multiqc/summary.html"
+    params:
+        ""
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        "0.27.1/bio/multiqc"
+
+
+rule multiqc_fastqc:
+    input:
+        expand("qc/fastqc/{sample}_R{read}_fastqc.zip",
+               sample=samples.keys(),
+               read=[1, 2] if config['mode']=="paired" else [1])
+    output:
+        "qc/multiqc/fastqc.html"
     params:
         ""
     log:
@@ -116,7 +131,11 @@ rule hisat2:
     input:
         # the function below selects either single or paired inputs
         # depending on the option 'mode'
-        reads=lambda wildcards: hisat2_input(wildcards, config['mode'])
+        index=indexfiles,
+        # reads=lambda wildcards: hisat2_input(
+        #     wildcards, config['mode'])
+        reads=lambda wildcards: hisat2_input(
+            wildcards, config['mode'])
     output:
         temp("mapped/unsorted/{sample}.bam")
     log:
@@ -140,6 +159,19 @@ rule merge:
         """
         echo {input} | tr ' ' '\n' > {log};
         zcat {input} > {output}"""
+
+
+rule fastqc:
+    input:
+        "merged/{sample}_R{read}.fastq"
+    output:
+        html="qc/fastqc/{sample}_R{read}_fastqc.html",
+        zip="qc/fastqc/{sample}_R{read}_fastqc.zip"
+    params: ""
+    log:
+        "logs/fastqc/{sample}_R{read}.log"
+    wrapper:
+        "0.27.1/bio/fastqc"
 
 
 rule gtf2bed:
