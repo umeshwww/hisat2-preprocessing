@@ -2,8 +2,19 @@ version: '3'
 
 services:
   hisat2:
+    # use an image
+    image: pwlb/hisat2-preprocessing
+
+    # or build locally...
     build: .
+
+    # set the snakemake options with command
+    command: "--jobs 20"
+
     volumes:
       - ./test/fastq-generated:/fastq:ro
       - ./test/index:/meta:rw
       - ./test/output:/output:rw
+
+      # if necessary mount a config file (see config/config.yml for details)
+      - ./config/config.yml:/config/config.yml:ro

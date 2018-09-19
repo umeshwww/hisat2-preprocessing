@@ -28,4 +28,5 @@ RUN pip install htseq==0.11.0
 COPY scripts /scripts
 
 # the snakemake command to run the pipeline
-CMD ["snakemake", "--directory", "/output", "--snakefile", "/scripts/Snakefile", "--jobs", "32"]
+ENTRYPOINT ["snakemake", "--directory", "/output", "--snakefile", "/scripts/Snakefile", "-p", "--jobs", "32"]
+CMD [""]
