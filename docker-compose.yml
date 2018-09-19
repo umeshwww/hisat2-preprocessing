@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  hisat2:
+    build: .
+    volumes:
+      - ./test/fastq-generated:/fastq:ro
+      - ./test/index:/meta:rw
+      - ./test/output:/output:rw
