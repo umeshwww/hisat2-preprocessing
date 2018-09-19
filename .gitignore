@@ -1,0 +1,4 @@
+test/output
+test/index/hisat2
+*.bed
+*.gff
