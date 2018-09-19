@@ -18,6 +18,7 @@ indexname = str(Path(config['fasta']).stem)
 indexstem = str(Path(indexdir)/indexname)
 # "/meta/annotation.gtf"
 gtffile = str(Path(config['metadir'])/config['gtf'])
+bedfile = str(Path(gtffile).with_suffix(".bed"))
 
 indexfiles = expand(
     indexstem+".{i}.ht2",
@@ -78,7 +79,8 @@ rule htseq:
 rule multiqc_summary:
     input:
         expand("counts/{sample}.tsv", sample=samples.keys()),
-        expand("logs/hisat2/{sample}.log", sample=samples.keys())
+        expand("logs/hisat2/{sample}.log", sample=samples.keys()),
+        expand("qc/rseqc/{sample}.rseqc.txt", sample=samples.keys())
     output:
         "qc/multiqc/summary.html"
     params:
@@ -116,7 +118,7 @@ rule hisat2:
         # depending on the option 'mode'
         reads=lambda wildcards: hisat2_input(wildcards, config['mode'])
     output:
-        "mapped/unsorted/{sample}.bam"
+        temp("mapped/unsorted/{sample}.bam")
     log:
         "logs/hisat2/{sample}.log"
     params:
@@ -131,10 +133,32 @@ rule merge:
     input:
         lambda wildcards: samples[wildcards.sample][wildcards.read]
     output:
-        "merged/{sample}_R{read}.fastq"
+        temp("merged/{sample}_R{read}.fastq")
     log:
         "logs/merging/{sample}_R{read}_merge.log"
     shell:
         """
         echo {input} | tr ' ' '\n' > {log};
         zcat {input} > {output}"""
+
+
+rule gtf2bed:
+    input:
+        gtffile
+    output:
+        bedfile
+    shell:
+        "/scripts/gtf2bed {input} > {output}"
+
+
+rule rseqc:
+    input:
+        bam="mapped/sorted/{sample}.bam",
+        bed=bedfile
+    output:
+        "qc/rseqc/{sample}.rseqc.txt"
+    shell:
+        """
+        source activate rseqc
+        read_distribution.py -i {input.bam} -r {input.bed} > {output}
+        """
