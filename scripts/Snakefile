@@ -28,8 +28,8 @@ indexfiles = expand(
 rule all:
     input:
         "config.yml",
-        # count vectors
-        expand("counts/{sample}.tsv", sample=samples.keys()),
+        # count matrix
+        "counts/merged.tsv",
         # qc from htseq_qc
         expand("qc/htseq_qc/{sample}.pdf", sample=samples.keys()),
         # multiqc outputs
@@ -69,7 +69,7 @@ rule htseq:
         bam="mapped/sorted/{sample}.bam",
         gtf=gtffile
     output:
-        "counts/{sample}.tsv"
+        temp("counts/separate/{sample}.tsv")
     log:
         "logs/htseq/{sample}.log"
     shell:
@@ -77,9 +77,18 @@ rule htseq:
         {input.bam} {input.gtf} > {output} 2> {log}"""
 
 
+rule htseq_merge:
+    input:
+        expand("counts/separate/{sample}.tsv", sample=samples.keys())
+    output:
+        "counts/merged.tsv"
+    script:
+        "/scripts/merge-counts.py"
+
+
 rule multiqc_summary:
     input:
-        expand("counts/{sample}.tsv", sample=samples.keys()),
+        expand("counts/separate/{sample}.tsv", sample=samples.keys()),
         expand("logs/hisat2/{sample}.log", sample=samples.keys()),
         expand("qc/rseqc/{sample}.rseqc.txt", sample=samples.keys()),
     output:
