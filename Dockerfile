@@ -25,6 +25,7 @@ ENV PATH /usr/local/envs/hisat2/bin:$PATH
 # works fine though.
 RUN pip install htseq==0.11.0
 
+COPY config /config
 COPY scripts /scripts
 
 # the snakemake command to run the pipeline
