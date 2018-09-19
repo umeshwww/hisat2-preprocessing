@@ -28,7 +28,12 @@ rule all:
     input:
         "config.yml",
         indexfiles,
-        expand("counts/{sample}.tsv", sample=samples.keys())
+        # count vectors
+        expand("counts/{sample}.tsv", sample=samples.keys()),
+        # qc from htseq_qc
+        expand("qc/htseq_qc/{sample}.pdf", sample=samples.keys()),
+        # multiqc outputs
+        "qc/multiqc/summary.html"
 
 
 # writes the updated config file to the output directory
@@ -63,9 +68,34 @@ rule htseq:
         gtf=gtffile
     output:
         "counts/{sample}.tsv"
+    log:
+        "logs/htseq/{sample}.log"
     shell:
         """htseq-count --order=pos --format=bam \
-        {input.bam} {input.gtf} > {output}"""
+        {input.bam} {input.gtf} > {output} 2> {log}"""
+
+
+rule multiqc_summary:
+    input:
+        expand("counts/{sample}.tsv", sample=samples.keys()),
+        expand("logs/hisat2/{sample}.log", sample=samples.keys())
+    output:
+        "qc/multiqc/summary.html"
+    params:
+        ""
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        "0.27.1/bio/multiqc"
+
+
+rule htseq_qa:
+    input:
+        "mapped/sorted/{sample}.bam",
+    output:
+        "qc/htseq_qc/{sample}.pdf"
+    shell:
+        """htseq-qa --type=bam {input} --outfile={output} --maxqual=60"""
 
 
 rule hisat2index:
@@ -91,7 +121,7 @@ rule hisat2:
         "logs/hisat2/{sample}.log"
     params:
         idx=indexstem,
-        extra="--min-intronlen 1000"
+        extra="--new-summary"
     threads: 8
     wrapper:
         "0.27.1/bio/hisat2"
