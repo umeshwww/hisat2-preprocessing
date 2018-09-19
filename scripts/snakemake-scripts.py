@@ -24,11 +24,11 @@ def get_samples(fastqdir):
         if sample not in samples:
             samples[sample] = {'1': [], '2': []}
 
-            R1 = str(f)
-            R2 = str(f).replace("_R1_", "_R2_")
+        R1 = str(f)
+        R2 = str(f).replace("_R1_", "_R2_")
 
-            samples[sample]['1'].append(R1)
-            samples[sample]['2'].append(R2)
+        samples[sample]['1'].append(R1)
+        samples[sample]['2'].append(R2)
 
     if not samples:
         raise Exception("Could not find any samples")
