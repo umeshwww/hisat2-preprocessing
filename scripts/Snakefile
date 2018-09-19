@@ -34,8 +34,9 @@ rule all:
         expand("qc/htseq_qc/{sample}.pdf", sample=samples.keys()),
         # multiqc outputs
         "qc/multiqc/summary.html",
-        "qc/multiqc/fastqc.html"
-
+        "qc/multiqc/fastqc.html",
+        "qc/multiqc/fastqc_trimmed.html",
+        "qc/multiqc/trimmomatic.html"
 
 # writes the updated config file to the output directory
 rule storeconfig:
@@ -106,6 +107,35 @@ rule multiqc_fastqc:
         "0.27.1/bio/multiqc"
 
 
+rule multiqc_fastqc_trimmed:
+    input:
+        expand("qc/fastqc_trimmed/{sample}_R{read}_fastqc.zip",
+               sample=samples.keys(),
+               read=[1, 2] if config['mode']=="paired" else [1])
+    output:
+        "qc/multiqc/fastqc_trimmed.html"
+    params:
+        ""
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        "0.27.1/bio/multiqc"
+
+
+rule multiqc_trimmomatic:
+    input:
+        expand("logs/trimmomatic/{mode}/{sample}.log",
+               mode=[config['mode']], sample=samples.keys())
+    output:
+        "qc/multiqc/trimmomatic.html"
+    params:
+        ""
+    log:
+        "logs/multiqc/trimmomatic.log"
+    wrapper:
+        "0.27.1/bio/multiqc"
+
+
 rule htseq_qa:
     input:
         "mapped/sorted/{sample}.bam",
@@ -148,6 +178,45 @@ rule hisat2:
         "0.27.1/bio/hisat2"
 
 
+rule trimmomatic_se:
+    input:
+        "merged/{sample}_R1.fastq"
+    output:
+        temp("trimmed/single/{sample}_R1.fastq")
+    log:
+        "logs/trimmomatic/single/{sample}.log"
+    params:
+        # list of trimmers (see manual)
+        trimmer=config['trimmer'],
+        # optional parameters
+        extra="-phred33 -threads 10"
+    threads: 10
+    wrapper:
+        "0.27.1/bio/trimmomatic/se"
+
+
+rule trimmomatic_pe:
+    input:
+        r1="merged/{sample}_R1.fastq",
+        r2="merged/{sample}_R2.fastq"
+    output:
+        r1=temp("trimmed/paired/{sample}_R1.fastq"),
+        r2=temp("trimmed/paired/{sample}_R2.fastq"),
+        # reads where trimming entirely removed the mate
+        r1_unpaired=temp("trimmed/paired/{sample}.1.unpaired.fastq.gz"),
+        r2_unpaired=temp("trimmed/paired/{sample}.2.unpaired.fastq.gz")
+    log:
+        "logs/trimmomatic/paired/{sample}.log"
+    params:
+        # list of trimmers (see manual)
+        trimmer=config['trimmer'],
+        # optional parameters
+        extra="-phred33 -threads 10"
+    threads: 10
+    wrapper:
+        "0.27.1/bio/trimmomatic/pe"
+
+
 rule merge:
     input:
         lambda wildcards: samples[wildcards.sample][wildcards.read]
@@ -159,6 +228,20 @@ rule merge:
         """
         echo {input} | tr ' ' '\n' > {log};
         zcat {input} > {output}"""
+
+
+rule fastqc_trimmed:
+    input:
+        expand("trimmed/{mode}/{{sample}}_R{{read}}.fastq",
+               mode=[config['mode']])
+    output:
+        html="qc/fastqc_trimmed/{sample}_R{read}_fastqc.html",
+        zip="qc/fastqc_trimmed/{sample}_R{read}_fastqc.zip"
+    params: ""
+    log:
+        "logs/fastqc/{sample}_R{read}.log"
+    wrapper:
+        "0.27.1/bio/fastqc"
 
 
 rule fastqc:

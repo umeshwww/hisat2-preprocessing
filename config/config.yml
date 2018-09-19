@@ -10,3 +10,11 @@ metadir: "/meta"
 # gtf: ""
 
 # mode: "auto"
+
+# see http://www.usadellab.org/cms/?page=trimmomatic for details
+trimmer:
+  - "LEADING:3"
+  - "TRAILING:3"
+  - "SLIDINGWINDOW:4:20"
+  - "MINLEN:10"
+  - "ILLUMINACLIP:NexteraPE-PE.fa:2:30:10"

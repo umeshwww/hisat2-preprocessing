@@ -109,8 +109,8 @@ def hisat2_input(wildcards, mode):
 mode"""
 
     sample = wildcards.sample
-    R1, R2 = [f"""merged/{sample}_R1.fastq""",
-              f"""merged/{sample}_R2.fastq"""]
+    R1, R2 = [f"""trimmed/{mode}/{sample}_R1.fastq""",
+              f"""trimmed/{mode}/{sample}_R2.fastq"""]
 
     if mode == "single":
         return [R1]
