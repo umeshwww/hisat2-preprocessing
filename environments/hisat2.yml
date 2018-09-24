@@ -12,6 +12,5 @@ dependencies:
   - ncurses=5.9
   - multiqc=1.6
   - gffread=0.9.9
-  # needed by gtf2bed
-  - perl=5.26.2
-  - fastqc=0.11.7
+  # see https://www.biostars.org/p/206342/#206350
+  - fastqc=0.11.6
