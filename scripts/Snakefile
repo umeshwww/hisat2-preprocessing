@@ -37,6 +37,8 @@ rule all:
         "qc/multiqc/fastqc.html",
         "qc/multiqc/fastqc_trimmed.html",
         "qc/multiqc/trimmomatic.html"
+    shell:
+        "echo 'All good!' | figlet -f slant | /usr/games/cowsay -n -f /scripts/nyan.cow | /usr/games/lolcat"
 
 # writes the updated config file to the output directory
 rule storeconfig:

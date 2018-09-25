@@ -13,7 +13,8 @@ ENV LANG=C.UTF-8
 # generated with standard tools like BEDOPS).
 
 RUN apt-get update &&\
-    apt-get install -y libdata-dumper-simple-perl --no-install-recommends &&\
+    apt-get install -y --no-install-recommends libdata-dumper-simple-perl \
+            lolcat figlet cowsay &&\
     apt-get clean
 
 # copy and install all the environment
