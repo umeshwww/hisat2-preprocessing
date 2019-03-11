@@ -3,7 +3,7 @@ version: '3'
 services:
   hisat2:
     # use an image
-    image: pwlb/hisat2-preprocessing
+    image: schultzelab/hisat2-preprocessing
 
     # or build locally...
     build: .
