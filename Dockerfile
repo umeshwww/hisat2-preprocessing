@@ -1,5 +1,5 @@
-# Set the base image to debian based miniconda2
-FROM conda/miniconda3
+# Set the base image for preprocess tools
+FROM pguen/bioinfo-base-image:pg_v1.0
 
 # File Author / Maintainer
 MAINTAINER Paweł Biernat <pawel.biernat@gmail.com>
@@ -13,21 +13,8 @@ ENV LANG=C.UTF-8
 # generated with standard tools like BEDOPS).
 
 RUN apt-get update &&\
-    apt-get install -y --no-install-recommends libdata-dumper-simple-perl \
-            lolcat figlet cowsay &&\
+    apt-get install -y --no-install-recommends libdata-dumper-simple-perl lolcat figlet cowsay &&\
     apt-get clean
-
-# copy and install all the environment
-COPY environments /environments
-
-RUN conda env create -f /environments/hisat2.yml
-
-# rseqc is in conflict with multiqc so it get's its own environment
-RUN conda env create -f /environments/rseqc.yml
-
-# a work around to activate the environment
-RUN echo "source activate hisat2" > ~/.bashrc
-ENV PATH /usr/local/envs/hisat2/bin:$PATH
 
 # the newest version on conda is 0.9.1 but it has some kind of bug
 # that prevented me from using it on my test files.  The pip version
@@ -38,5 +25,5 @@ COPY config /config
 COPY scripts /scripts
 
 # the snakemake command to run the pipeline
-ENTRYPOINT ["snakemake", "--directory", "/output", "--snakefile", "/scripts/Snakefile", "-p", "--jobs", "32"]
+ENTRYPOINT ["snakemake", "--directory", "/output", "--snakefile", "/scripts/Snakefile", "-p", "--jobs", "8"]
 CMD ["all"]
