@@ -9,7 +9,7 @@ services:
     build: .
 
     # set the snakemake options with command
-    command: "--jobs 8"
+    command: "--jobs 12"
 
     volumes:
       - ./test/fastq-generated:/fastq:ro

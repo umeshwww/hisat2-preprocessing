@@ -16,6 +16,7 @@ RUN apt-get update &&\
     apt-get install -y --no-install-recommends libdata-dumper-simple-perl lolcat figlet cowsay &&\
     apt-get clean
 
+#TODO: Retest this with latest version on conda. See if pip dependancy can be eliminated.
 # the newest version on conda is 0.9.1 but it has some kind of bug
 # that prevented me from using it on my test files.  The pip version
 # works fine though.

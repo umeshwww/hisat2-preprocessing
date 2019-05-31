@@ -10,19 +10,21 @@ config = parse_config(config, samples)
 
 # "/meta/hisat2"
 indexdir = str(Path(config['metadir'])/"hisat2")
+
 # "/meta/genome.fasta"
 fastafile = str(Path(config['metadir'])/config['fasta'])
+
 # "genome"
 indexname = str(Path(config['fasta']).stem)
+
 # "/meta/hisat2/genome"
 indexstem = str(Path(indexdir)/indexname)
+
 # "/meta/annotation.gtf"
 gtffile = str(Path(config['metadir'])/config['gtf'])
 bedfile = str(Path(gtffile).with_suffix(".bed"))
 
-indexfiles = expand(
-    indexstem+".{i}.ht2",
-    i=range(1,9))
+indexfiles = expand(indexstem+".{i}.ht2", i=range(1,9))
 
 
 rule all:
